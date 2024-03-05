@@ -1,27 +1,27 @@
 // Set dimensions and margins for the chart
-const margin = { top: 70, right: 30, bottom: 40, left: 80 };
-const width = 1200 - margin.left - margin.right;
-const height = 500 - margin.top - margin.bottom;
+const margin2 = { top: 70, right: 30, bottom: 40, left: 80 };
+const width2 = 1200 - margin2.left - margin2.right;
+const height2 = 500 - margin2.top - margin2.bottom;
 
 // Set up the x and y scales
 const x = d3.scaleTime()
-  .range([0, width]);
+  .range([0, width2]);
 
 const y = d3.scaleLinear()
-  .range([height, 0]);
+  .range([height2, 0]);
 
 // Set up the line generator
 const line = d3.line()
   .x(d => x(d.date))
   .y(d => y(d.population));
 
-// Create the SVG element and append it to the chart container
-const svg = d3.select("#chart-container")
+// Create the svg2 element and append it to the chart container
+const svg2 = d3.select("#chart-container")
   .append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
+  .attr("width", width2 + margin2.left + margin2.right)
+  .attr("height", height2 + margin2.top + margin2.bottom)
   .append("g")
-  .attr("transform", `translate(${margin.left},${margin.top})`);
+  .attr("transform", `translate(${margin2.left},${margin2.top})`);
 
 // create tooltip div
 
@@ -45,8 +45,8 @@ d3.csv("jdi_data_daily.csv").then(data => {
   y.domain([65000, d3.max(data, d => d.population)]);
 
   // Add the x-axis
-  svg.append("g")
-    .attr("transform", `translate(0,${height})`)
+  svg2.append("g")
+    .attr("transform", `translate(0,${height2})`)
     .style("font-size", "14px")
     .call(d3.axisBottom(x)
       .tickValues(x.ticks(d3.timeMonth.every(6))) // Display ticks every 6 months
@@ -54,22 +54,22 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .call(g => g.select(".domain").remove()) // Remove the x-axis line
     .selectAll(".tick line") // Select all tick lines
     .style("stroke-opacity", 0)
-  svg.selectAll(".tick text")
+  svg2.selectAll(".tick text")
     .attr("fill", "#777");
 
   // Add vertical gridlines
-  svg.selectAll("xGrid")
+  svg2.selectAll("xGrid")
     .data(x.ticks().slice(1))
     .join("line")
     .attr("x1", d => x(d))
     .attr("x2", d => x(d))
     .attr("y1", 0)
-    .attr("y2", height)
+    .attr("y2", height2)
     .attr("stroke", "#e0e0e0")
-    .attr("stroke-width", .5);
+    .attr("stroke-width2", .5);
 
   // Add the y-axis
-  svg.append("g")
+  svg2.append("g")
     .style("font-size", "14px")
     .call(d3.axisLeft(y)
       .ticks((d3.max(data, d => d.population) - 65000) / 5000)
@@ -91,10 +91,10 @@ d3.csv("jdi_data_daily.csv").then(data => {
     });
 
   // Add Y-axis label
-  svg.append("text")
+  svg2.append("text")
     .attr("transform", "rotate(-90)")
-    .attr("y", 0 - margin.left)
-    .attr("x", 0 - (height / 2))
+    .attr("y", 0 - margin2.left)
+    .attr("x", 0 - (height2 / 2))
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .style("font-size", "14px")
@@ -103,27 +103,27 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .text("Total Population");
 
   // Add horizontal gridlines
-  svg.selectAll("yGrid")
+  svg2.selectAll("yGrid")
     .data(y.ticks((d3.max(data, d => d.population) - 70000) / 5000).slice(1))
     .join("line")
     .attr("x1", 0)
-    .attr("x2", width)
+    .attr("x2", width2)
     .attr("y1", d => y(d))
     .attr("y2", d => y(d))
     .attr("stroke", "#e0e0e0")
-    .attr("stroke-width", .5)
+    .attr("stroke-width2", .5)
 
   // Add the line path
-  const path = svg.append("path")
+  const path = svg2.append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
-    .attr("stroke-width", 1)
+    .attr("stroke-width2", 1)
     .attr("d", line);
 
   // Add a circle element
 
-  const circle = svg.append("circle")
+  const circle = svg2.append("circle")
     .attr("r", 0)
     .attr("fill", "steelblue")
     .style("stroke", "white")
@@ -131,9 +131,9 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .style("pointer-events", "none");
   // create a listening rectangle
 
-  const listeningRect = svg.append("rect")
-    .attr("width", width)
-    .attr("height", height);
+  const listeningRect = svg2.append("rect")
+    .attr("width", width2)
+    .attr("height", height2);
 
   // create the mouse move function
 
@@ -179,20 +179,20 @@ d3.csv("jdi_data_daily.csv").then(data => {
   });
 
   // Add the chart title
-  svg.append("text")
+  svg2.append("text")
     .attr("class", "chart-title")
-    .attr("x", margin.left - 115)
-    .attr("y", margin.top - 100)
+    .attr("x", margin2.left - 115)
+    .attr("y", margin2.top - 100)
     .style("font-size", "24px")
     //.style("font-weight", "bold")
     .style("font-family", "sans-serif")
     .text("Prison Populations in the US Have Trended Upward Since Summer 2020");
 
   // Add the source credit
-  svg.append("text")
+  svg2.append("text")
     .attr("class", "source-credit")
-    .attr("x", width - 1125)
-    .attr("y", height + margin.bottom - 3)
+    .attr("x", width2 - 1125)
+    .attr("y", height2 + margin2.bottom - 3)
     .style("font-size", "9px")
     .style("font-family", "sans-serif")
     .text("Source: jaildatainitiative.org");

@@ -24,7 +24,7 @@ const svg = d3.select("#chart-container")
 // Create a fake dataset
 
 const dataset = [
-  { date: new Date("2022-01-01"), value: 200 },
+  { date: new Date("2022-01-01"), value: 2000 },
   { date: new Date("2022-02-01"), value: 250 },
   { date: new Date("2022-03-01"), value: 180 },
   { date: new Date("2022-04-01"), value: 300 },
@@ -46,7 +46,7 @@ y.domain([0, d3.max(dataset, d => d.value)]);
 // Add the x-axis
 
 svg.append("g")
-  .attr("transform", `translate(0,${height})`)
+  // .attr("transform", `translate(0,${height})`)
   .call(d3.axisBottom(x)
     .ticks(d3.timeMonth.every(1)) 
     .tickFormat(d3.timeFormat("%b %Y"))); 
