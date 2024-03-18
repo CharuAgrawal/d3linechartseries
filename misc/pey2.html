@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Plot with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Add your custom styles here if needed */
+    </style>
+</head>
+<body>
+    <svg width="600" height="400"></svg>
+
+    <script>
+        // Sample data
+        const data = [
+            { date: new Date("Wed Oct 11 2023"), count: 8 },
+            { date: new Date("Thu Oct 12 2023"), count: 7 },
+            // Add more data objects here
+            { date: new Date("Fri Mar 15 2024"), count: 29 }
+        ];
+
+        // Set up SVG container
+        const margin = { top: 20, right: 30, bottom: 30, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        const svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Set up scales
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(data, d => d.date))
+            .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.count)])
+            .range([height, 0]);
+
+        // Define the area generator
+        const area = d3.area()
+            .x(d => xScale(d.date))
+            .y0(height)
+            .y1(d => yScale(d.count));
+
+        // Draw the area
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "steelblue")
+            .attr("d", area);
+
+        // Add X axis
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale));
+
+        // Add Y axis
+        svg.append("g")
+            .call(d3.axisLeft(yScale));
+    </script>
+</body>
+</html>

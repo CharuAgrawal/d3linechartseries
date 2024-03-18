@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Plot with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+
+        /* Add your custom styles here if needed */
+        .tooltip {
+            position: absolute;
+            background-color: rgb(195, 28, 28);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <svg width="600" height="400"></svg>
+    <div class="tooltip"></div>
+
+    <script>
+        // Sample data
+        const data = [
+            { date: new Date("Wed Oct 11 2023"), count: 8 },
+            { date: new Date("Thu Oct 12 2023"), count: 7 },
+            // Add more data objects here
+            { date: new Date("Fri Mar 15 2024"), count: 29 }
+        ];
+
+        // Set up SVG container
+        const margin = { top: 20, right: 30, bottom: 30, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        const svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Accumulate counts
+        let accumulatedData = [];
+        let accumulatedCount = 0;
+        data.forEach(d => {
+            accumulatedCount += d.count;
+            accumulatedData.push({ date: d.date, count: accumulatedCount });
+        });
+
+        // Set up scales
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(accumulatedData, d => d.date))
+            .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(accumulatedData, d => d.count)])
+            .range([height, 0]);
+
+        // Define the line generator
+        const line = d3.line()
+            .x(d => xScale(d.date))
+            .y(d => yScale(d.count));
+
+        // Draw the line
+        svg.append("path")
+            .datum(accumulatedData)
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-width", 3) // Set the stroke width to 3 (thicker line)
+            .attr("d", line);
+
+        // Add X axis
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale));
+
+        // Add Y axis
+        svg.append("g")
+            .call(d3.axisLeft(yScale));
+
+        // Add tooltip
+        const tooltip = d3.select("#tooltip");
+
+        svg.on("mousemove", function(event) {
+            const mouseX = d3.pointer(event)[0];
+            const mouseY = d3.pointer(event)[1];
+            const date = xScale.invert(mouseX);
+            const count = yScale.invert(mouseY);
+            
+            tooltip.style("display", "block")
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px")
+                .html(`Date: ${date.toDateString()}<br/>Count: ${Math.round(count)}`);
+        });
+
+        svg.on("mouseout", function() {
+            tooltip.style("display", "none");
+        });
+
+        // // Add tooltip
+        // const tooltip = d3.select("body").append("div")
+        //     .attr("class", "tooltip")
+        //     .style("opacity", 0);
+
+        // svg.selectAll("dot")
+        //     .data(accumulatedData)
+        //     .enter().append("circle")
+        //     .attr("r", 5)
+        //     .attr("cx", d => xScale(d.date))
+        //     .attr("cy", d => yScale(d.count))
+        //     .on("mouseover", function(d) {
+        //         tooltip.transition()
+        //             .duration(200)
+        //             .style("opacity", .9);
+        //         tooltip.html(`Date: ${d.date.toDateString()}<br/>Count: ${d.count}`)
+        //             .style("left", (d3.event.pageX + 10) + "px")
+        //             .style("top", (d3.event.pageY - 28) + "px");
+        //     })
+        //     .on("mouseout", function(d) {
+        //         tooltip.transition()
+        //             .duration(500)
+        //             .style("opacity", 0);
+        //     });
+    </script>
+</body>
+</html>

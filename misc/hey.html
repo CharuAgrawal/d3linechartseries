@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Series Graph with D3.js</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <svg width="600" height="400"></svg>
+
+  <script>
+    // Input data
+    const data = [
+      {"created": "2024-02-27T14:05:11"},
+      {"created": "2024-02-15T17:35:23"},
+      {"created": "2024-02-15T11:29:01"},
+      {"created": "2024-02-15T20:12:28"},
+      {"created": "2024-02-14T13:11:23"},
+      {"created": "2024-02-14T21:44:55"},
+      {"created": "2024-02-28T12:01:16"}
+    ];
+
+    // Parse dates
+    const parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S");
+    data.forEach(d => {
+      d.created = parseTime(d.created);
+    });
+
+    // Rollup data per day
+    const rollupData = d3.rollup(data, 
+      v => v.length,  // Aggregation function (count)
+      d => d3.timeDay(d.created) // Grouping function (per day)
+    );
+
+    // Convert rollupData map to array
+    const aggregatedData = Array.from(rollupData, ([key, value]) => ({date: key, count: value}));
+
+    // Set up dimensions and margins
+    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+
+    // Create SVG element
+    const svg = d3.select("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Define scales
+    const xScale = d3.scaleTime()
+      .domain(d3.extent(aggregatedData, d => d.date))
+      .range([0, width]);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, d3.max(aggregatedData, d => d.count)])
+      .range([height, 0]);
+
+    // Define axes
+    const xAxis = d3.axisBottom(xScale);
+    const yAxis = d3.axisLeft(yScale);
+
+    // Append axes to the SVG
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(xAxis);
+
+    svg.append("g")
+      .call(yAxis);
+
+    // Draw the time series line
+    svg.selectAll(".bar")
+      .data(aggregatedData)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", d => xScale(d.date))
+      .attr("y", d => yScale(d.count))
+      .attr("width", width / aggregatedData.length)
+      .attr("height", d => height - yScale(d.count))
+      .style("fill", "steelblue");
+  </script>
+</body>
+</html>

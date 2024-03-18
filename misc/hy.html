@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time vs Views Plot</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: crispEdges;
+        }
+
+        .axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+
+        .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+
+Date Thu Feb 29 2024 00:00:00 GMT+0100 (Central European Standard Time) → 7, Date Tue Feb 27 2024 00:00:00 GMT+0100 (Central European Standard Time) → 15, Date Wed Oct 11 2023 00:00:00 GMT+0200 (Central European Summer Time) → 8, Date Thu Nov 30 2023 00:00:00 GMT+0100 (Central European Standard Time) → 32, Date Sun Nov 12 2023 00:00:00 GMT+0100 (Central European Standard Time) → 1, Date Thu Jan 25 2024 00:00:00 GMT+0100 (Central European Standard Time) → 1, Date Wed Nov 29 2023 00:00:00 GMT+0100 (Central European Standard Time) → 20, Date Sun Dec 24 2023 00:00:00 GMT+0100 (Central European Standard Time) → 1, Date Tue Oct 17 2023 00:00:00 GMT+0200 (Central European Summer Time) → 7, Date Fri Feb 09 2024 00:00:00 GMT+0100 (Central European Standard Time) → 1,
+<body>
+    <script>
+        // Parse your data
+        let aggregateData = [
+            {date: "Thu Feb 29 2024 00:00:00 GMT+0100 (Central European Standard Time)", views: 7},
+            {date: "Tue Feb 27 2024 00:00:00 GMT+0100 (Central European Standard Time)", views: 15},
+            {date: "Wed Oct 11 2023 00:00:00 GMT+0200 (Central European Summer Time)", views: 8},
+            {date: "Thu Nov 30 2023 00:00:00 GMT+0100 (Central European Standard Time)", views: 32},
+            {date: "Sun Nov 12 2023 00:00:00 GMT+0100 (Central European Standard Time)", views: 1},
+            {date: "Thu Jan 25 2024 00:00:00 GMT+0100 (Central European Standard Time)", views: 1},
+            {date: "Wed Nov 29 2023 00:00:00 GMT+0100 (Central European Standard Time)", views: 20},
+            {date: "Sun Dec 24 2023 00:00:00 GMT+0100 (Central European Standard Time)", views: 1},
+            {date: "Tue Oct 17 2023 00:00:00 GMT+0200 (Central European Summer Time)", views: 7}
+        ];
+
+        // Format the data
+        var parseDate = d3.timeParse("%a %b %d %Y %H:%M:%S GMT%Z (Central European Standard Time)");
+        var parseDateSummer = d3.timeParse("%a %b %d %Y %H:%M:%S GMT%Z (Central European Summer Time)");
+
+        aggregateData.forEach(function(d) {
+            d.date = parseDate(d.date) || parseDateSummer(d.date);
+            d.views = +d.views;
+        });
+
+        // Sort data by date
+        aggregateData.sort(function(a, b) {
+            return a.date - b.date;
+        });
+
+        // Set the dimensions of the canvas
+        var margin = {top: 20, right: 20, bottom: 30, left: 50},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        // Set the ranges
+        var x = d3.scaleTime().range([0, width]);
+        var y = d3.scaleLinear().range([height, 0]);
+
+        // Define the line
+        var valueline = d3.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.views); });
+
+        // Adds the svg canvas
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", 
+                  "translate(" + margin.left + "," + margin.top + ")");
+
+        // Scale the range of the data
+        x.domain(d3.extent(aggregateData, function(d) { return d.date; }));
+        y.domain([0, d3.max(aggregateData, function(d) { return d.views; })]);
+
+        // Add the valueline path.
+        svg.append("path")
+            .data([aggregateData])
+            .attr("class", "line")
+            .attr("d", valueline);
+
+        // Add the X Axis
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        // Add the Y Axis
+        svg.append("g")
+            .attr("class", "axis")
+            .call(d3.axisLeft(y));
+    </script>
+</body>
+</html>

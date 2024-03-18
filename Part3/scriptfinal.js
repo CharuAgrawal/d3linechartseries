@@ -4,19 +4,19 @@ const width2 = 1200 - margin2.left - margin2.right;
 const height2 = 500 - margin2.top - margin2.bottom;
 
 // Set up the x and y scales
-const x = d3.scaleTime()
+const xScale = d3.scaleTime()
   .range([0, width2]);
 
-const y = d3.scaleLinear()
+const yScale = d3.scaleLinear()
   .range([height2, 0]);
 
 // Set up the line generator
 const line = d3.line()
-  .x(d => x(d.date))
-  .y(d => y(d.population));
+  .x(d => xScale(d.date))
+  .y(d => yScale(d.population));
 
 // Create the svg2 element and append it to the chart container
-const svg2 = d3.select("#chart-container")
+const svg = d3.select("#chart-container")
   .append("svg")
   .attr("width", width2 + margin2.left + margin2.right)
   .attr("height", height2 + margin2.top + margin2.bottom)
@@ -41,37 +41,37 @@ d3.csv("jdi_data_daily.csv").then(data => {
   });
 
   // Set the domains for the x and y scales
-  x.domain(d3.extent(data, d => d.date));
-  y.domain([65000, d3.max(data, d => d.population)]);
+  xScale.domain(d3.extent(data, d => d.date));
+  yScale.domain([65000, d3.max(data, d => d.population)]);
 
   // Add the x-axis
-  svg2.append("g")
+  svg.append("g")
     .attr("transform", `translate(0,${height2})`)
     .style("font-size", "14px")
-    .call(d3.axisBottom(x)
-      .tickValues(x.ticks(d3.timeMonth.every(6))) // Display ticks every 6 months
+    .call(d3.axisBottom(xScale)
+      .tickValues(xScale.ticks(d3.timeMonth.every(6))) // Display ticks every 6 months
       .tickFormat(d3.timeFormat("%b %Y"))) // Format the tick labels to show Month and Year
     .call(g => g.select(".domain").remove()) // Remove the x-axis line
     .selectAll(".tick line") // Select all tick lines
     .style("stroke-opacity", 0)
-  svg2.selectAll(".tick text")
+  svg.selectAll(".tick text")
     .attr("fill", "#777");
 
   // Add vertical gridlines
-  svg2.selectAll("xGrid")
-    .data(x.ticks().slice(1))
+  svg.selectAll("xGrid")
+    .data(xScale.ticks().slice(1))
     .join("line")
-    .attr("x1", d => x(d))
-    .attr("x2", d => x(d))
+    .attr("x1", d => xScale(d))
+    .attr("x2", d => xScale(d))
     .attr("y1", 0)
     .attr("y2", height2)
     .attr("stroke", "#e0e0e0")
     .attr("stroke-width2", .5);
 
   // Add the y-axis
-  svg2.append("g")
+  svg.append("g")
     .style("font-size", "14px")
-    .call(d3.axisLeft(y)
+    .call(d3.axisLeft(yScale)
       .ticks((d3.max(data, d => d.population) - 65000) / 5000)
       .tickFormat(d => {
         if (isNaN(d)) return "";
@@ -91,7 +91,7 @@ d3.csv("jdi_data_daily.csv").then(data => {
     });
 
   // Add Y-axis label
-  svg2.append("text")
+  svg.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", 0 - margin2.left)
     .attr("x", 0 - (height2 / 2))
@@ -103,18 +103,18 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .text("Total Population");
 
   // Add horizontal gridlines
-  svg2.selectAll("yGrid")
-    .data(y.ticks((d3.max(data, d => d.population) - 70000) / 5000).slice(1))
+  svg.selectAll("yGrid")
+    .data(yScale.ticks((d3.max(data, d => d.population) - 70000) / 5000).slice(1))
     .join("line")
     .attr("x1", 0)
     .attr("x2", width2)
-    .attr("y1", d => y(d))
-    .attr("y2", d => y(d))
+    .attr("y1", d => yScale(d))
+    .attr("y2", d => yScale(d))
     .attr("stroke", "#e0e0e0")
     .attr("stroke-width2", .5)
 
   // Add the line path
-  const path = svg2.append("path")
+  const path = svg.append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "steelblue")
@@ -123,7 +123,7 @@ d3.csv("jdi_data_daily.csv").then(data => {
 
   // Add a circle element
 
-  const circle = svg2.append("circle")
+  const circle = svg.append("circle")
     .attr("r", 0)
     .attr("fill", "steelblue")
     .style("stroke", "white")
@@ -131,34 +131,31 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .style("pointer-events", "none");
   // create a listening rectangle
 
-  const listeningRect = svg2.append("rect")
+  const listeningRect = svg.append("rect")
     .attr("width", width2)
     .attr("height", height2);
 
   // create the mouse move function
-
   listeningRect.on("mousemove", function (event) {
     const [xCoord] = d3.pointer(event, this);
     const bisectDate = d3.bisector(d => d.date).left;
-    const x0 = x.invert(xCoord);
+    const x0 = xScale.invert(xCoord);
     const i = bisectDate(data, x0, 1);
     const d0 = data[i - 1];
     const d1 = data[i];
     const d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-    const xPos = x(d.date);
-    const yPos = y(d.population);
+    const xPos = xScale(d.date);
+    const yPos = yScale(d.population);
 
 
     // Update the circle position
-
     circle.attr("cx", xPos)
       .attr("cy", yPos);
 
     // Add transition for the circle radius
-
     circle.transition()
       .duration(50)
-      .attr("r", 5);
+      .attr("r", 1); // originally 5 
 
     // add in  our tooltip
 
@@ -168,8 +165,8 @@ d3.csv("jdi_data_daily.csv").then(data => {
       .style("top", `${yPos + 50}px`)
       .html(`<strong>Date:</strong> ${d.date.toLocaleDateString()}<br><strong>Population:</strong> ${d.population !== undefined ? (d.population / 1000).toFixed(0) + 'k' : 'N/A'}`)
   });
-  // listening rectangle mouse leave function
 
+  // listening rectangle mouse leave function
   listeningRect.on("mouseleave", function () {
     circle.transition()
       .duration(50)
@@ -179,7 +176,7 @@ d3.csv("jdi_data_daily.csv").then(data => {
   });
 
   // Add the chart title
-  svg2.append("text")
+  svg.append("text")
     .attr("class", "chart-title")
     .attr("x", margin2.left - 115)
     .attr("y", margin2.top - 100)
@@ -189,7 +186,7 @@ d3.csv("jdi_data_daily.csv").then(data => {
     .text("Prison Populations in the US Have Trended Upward Since Summer 2020");
 
   // Add the source credit
-  svg2.append("text")
+  svg.append("text")
     .attr("class", "source-credit")
     .attr("x", width2 - 1125)
     .attr("y", height2 + margin2.bottom - 3)

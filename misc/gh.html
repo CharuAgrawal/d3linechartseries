@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Downloads Over Time</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <svg width="800" height="400"></svg>
+
+  <script>
+    // Raw data
+    const rawData = [
+      {"created": "2024-02-27T14:05:11"},
+      {"created": "2024-02-15T17:35:23"},
+      {"created": "2024-02-15T11:29:01"},
+      {"created": "2024-02-15T20:12:28"},
+      {"created": "2024-02-14T13:11:23"},
+      {"created": "2024-02-14T21:44:55"},
+      {"created": "2024-02-28T12:01:16"}
+    ];
+
+    // Parse dates
+    const parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S");
+    const dates = rawData.map(d => parseTime(d.created));
+
+    // Count downloads per day
+    const downloadCounts = d3.rollup(dates, v => v.length, d => d3.timeDay(d));
+
+    // Convert map to array
+    const data = Array.from(downloadCounts, ([date, count]) => ({ date, count }));
+
+    // Set up SVG
+    const svg = d3.select("svg"),
+          margin = { top: 20, right: 30, bottom: 30, left: 40 },
+          width = +svg.attr("width") - margin.left - margin.right,
+          height = +svg.attr("height") - margin.top - margin.bottom,
+          g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Set up scales
+    const x = d3.scaleTime().range([0, width]),
+          y = d3.scaleLinear().range([height, 0]);
+
+    // Set domains
+    x.domain(d3.extent(data, d => d.date));
+    y.domain([0, d3.max(data, d => d.count)]);
+
+    // Set up line generator
+    const line = d3.line()
+      .x(d => x(d.date))
+      .y(d => y(d.count));
+
+    // Append line to SVG
+    g.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
+
+    // Append x axis
+    g.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+    // Append y axis
+    g.append("g")
+      .call(d3.axisLeft(y));
+
+    // Add title
+    svg.append("text")
+      .attr("x", width / 2)
+      .attr("y", margin.top / 2)
+      .attr("text-anchor", "middle")
+      .style("font-size", "16px")
+      .text("Downloads Over Time");
+  </script>
+</body>
+</html>
